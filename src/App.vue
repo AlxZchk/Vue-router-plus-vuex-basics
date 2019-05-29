@@ -9,6 +9,13 @@ import HelloWorld from "./components/HelloWorld.vue";
 
 export default {
   name: "app",
+  mounted() {
+    this.$store.dispatch('loadFilms');
+    // this.$store.dispatch('loadPlanets');
+    // this.$store.dispatch('loadSpecies');
+    // this.$store.dispatch('loadStarships');
+    // this.$store.dispatch('loadVehicles');
+  },
 };
 </script>
 

@@ -1,10 +1,10 @@
 <template>
   <div class="wrapper">
     <h1>Home component</h1>
-    <ul v-if="isLoaded">
+    <ul>
       <router-link 
         class="film-list-item"
-        v-for="(film, index) in films" 
+        v-for="(film, index) in allFilms" 
         :key="index"
         :to="'/film/' + film.url.substr(27, 1)"
         tag="li"
@@ -23,33 +23,16 @@ export default {
   data() {
     return {
       films: [],
-      pending: true,
-      isError: false,
     }
   },
   methods: {
      
   },
   computed: {
-    isLoaded() {
-      return !this.pending && !this.isError;
-    },
+    allFilms() {
+      return this.$store.state.films;
+    }
   },
-  mounted() {
-    axios
-      .get('https://swapi.co/api/films')
-      .then(response => {
-        console.log(response);
-        if (response.status === 200) {
-          this.films = response.data.results;
-        }
-      })
-      .catch(error => {
-        console.log(error);
-        this.isError = true;
-      })
-      .finally(() => { this.pending = false; });
-  }
 }
 </script>
 
