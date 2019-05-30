@@ -1,7 +1,7 @@
 <template>
   <div class="wrapper">
     <h1>Planet Component</h1>
-    <p>{{ data && data.name }}</p>
+    <p>{{ planet && planet.name }}</p>
   </div>
 </template>
 
@@ -9,55 +9,45 @@
 import axios from "axios";
 export default {
   name: "Planet",
-  data() {
-    return { 
-      data: null,
-      pending: true,
-      isError: false,
-    }
-  },
   computed: {
-    isDataLoaded() {
-      return !this.isError && !this.pending;
+    data() {
+      return { planetId: -1, wasActionCalled: false };
+    },
+    planet() {
+      const planet = this.$store.getters.getPlanetById(this.planetId);
+      if (!planet && this.wasActionCalled) {
+        this.$router.push("/notFound");
+        return null;
+      }
+      return planet;
     }
   },
   methods: {
-    loadPlanetData(id) {
-      axios.get(`https://swapi.co/api/planets/${id}`)
-        .then(response => {
-          if (response.status === 200) {
-            this.data = response.data;
-          }
-          return response;
-        })
-        .catch(error => {
-          console.log(error);
-          this.isError = true;
-        })
-        .finally(() => {
-          this.pending = false;
-        });
+    initData(id) {
+      this.planetId = parseInt(id);
+      if (Number.isNaN(this.planetId) || this.planetId < 0) {
+        this.$router.push("/notFound");
+      }
+
+      if (!this.$store.getters.getPlanetById(this.planetId)) {
+        this.$store
+          .dispatch("loadPlanets", [
+            `https://swapi.co/api/planets/${this.planetId}`
+          ])
+          .then(() => {
+            this.wasActionCalled = true;
+          });
+      }
     }
   },
   mounted() {
-    const planetId = parseInt(this.$route.params.planetId);
-    if (Number.isNaN(planetId)) {
-      this.$router.push("/notFound");
-    }
-
-    this.loadPlanetData(planetId);
+    this.initData(this.$route.params.planetId);
   },
-  beforeRouteUpdate (to, from, next) {
-    const planetId = parseInt(to.params.planetId);
-    if (Number.isNaN(planetId)) {
-      this.$router.push("/notFound");
-    }
-
-    this.loadPlanetData(planetId);
-  },
-}
+  beforeRouteUpdate(to, from, next) {
+    this.initData(to.params.planetId);
+  }
+};
 </script>
 
 <style scoped lang="scss">
-
 </style>

@@ -1,36 +1,32 @@
 <template>
   <div class="wrapper">
-    <div class="main-info-wrapper" v-if="isMainDataLoaded">
-      <p>{{ data.title }}</p>
-      <p>{{ data.opening_crawl }}</p>
+    <div class="main-info-wrapper">
+      <p>{{ film.title }}</p>
+      <p>{{ film.opening_crawl }}</p>
     </div>
     <div class="additional-info-block">
       <div class="planets" v-if="arePlanetsLoaded">
         <h4>Planets</h4>
         <ul>
-          <router-link 
+          <router-link
             class="film-list-item"
-            v-for="(planet, index) in planets" 
+            v-for="(planet, index) in planets"
             :key="index"
-            :to="'/planet/' + planet.url.substr(29, 1)"
+            :to="'/planet/' + planet.url.substring(29, planet.url.length - 1)"
             tag="li"
-          >
-            {{ planet.name }}
-          </router-link>
+          >{{ planet.name }}</router-link>
         </ul>
       </div>
       <div class="species" v-if="areSpeciesLoaded">
         <h4>Species</h4>
         <ul>
-          <router-link 
+          <router-link
             class="film-list-item"
-            v-for="(specie, index) in species" 
+            v-for="(specie, index) in species"
             :key="index"
-            :to="'/species/' + specie.url.substr(30, 1)"
+            :to="'/species/' + specie.url.substring(29, specie.url.length - 1)"
             tag="li"
-          >
-            {{ specie.name }}
-          </router-link>
+          >{{ specie.name }}</router-link>
         </ul>
       </div>
     </div>
@@ -40,11 +36,9 @@
         <ul>
           <li
             class="film-list-item"
-            v-for="(starship, index) in starships" 
+            v-for="(starship, index) in starships"
             :key="index"
-          >
-            {{ starship.name }}
-          </li>
+          >{{ starship.name }}</li>
         </ul>
       </div>
       <div class="vehicles" v-if="areVehiclesLoaded">
@@ -52,11 +46,9 @@
         <ul>
           <li
             class="film-list-item"
-            v-for="(vehicle, index) in vehicles" 
+            v-for="(vehicle, index) in vehicles"
             :key="index"
-          >
-            {{ vehicle.name }}
-          </li>
+          >{{ vehicle.name }}</li>
         </ul>
       </div>
     </div>
@@ -69,73 +61,17 @@ export default {
   name: "Film",
   data() {
     return {
+      filmId: -1,
+      didGetData: false,
       data: null,
-      planets: null,
-      species: null,
-      starships: null,
-      vehicles: null,
-      pending: true,
-      isError: false
     };
   },
   methods: {
-    fetchFilmData(id) {
-      let title;
-      let opening_crawl;
-      this.sendGetRequest(`https://swapi.co/api/films/${id}`)
-        .then(response => {
-          console.log(response);
-          if (response.status === 200) {
-            console.log({ response });
-            title = response.data.title;
-            opening_crawl = response.data.opening_crawl;
-            this.data = {
-              title,
-              opening_crawl
-            };
-          }
-          return response;
-        })
-        .then(response => {
-          const planetRequests = this.sendCategoryRequests(
-            response.data.planets
-          );
-          const speciesRequests = this.sendCategoryRequests(
-            response.data.species
-          );
-          const starshipsRequests = this.sendCategoryRequests(
-            response.data.starships
-          );
-          const vehiclesRequests = this.sendCategoryRequests(
-            response.data.vehicles
-          );
-          return Promise.all([
-            planetRequests,
-            speciesRequests,
-            starshipsRequests,
-            vehiclesRequests
-          ]);
-        })
-        .then(
-          ([
-            planetResponse,
-            speciesResponse,
-            starshipsResponse,
-            vehiclesResponse
-          ]) => {
-            this.planets = planetResponse.map((item) => item.data);
-            this.species = speciesResponse.map((item) => item.data);
-            this.starships = starshipsResponse.map((item) => item.data);
-            this.vehicles = vehiclesResponse.map((item) => item.data);
-          }
-        )
-        .catch(error => {
-          console.log(error);
-          this.isError = true;
-        })
-        .finally(() => {
-          this.pending = false;
-        });
+    fetchFilmData(film) {
+      this.$store.dispatch("loadPlanets", film.planets);
+      this.$store.dispatch("loadSpecies", film.species);
+      this.$store.dispatch("loadStarships", film.starships);
+      this.$store.dispatch("loadVehicles", film.vehicles);
     },
     sendGetRequest(url) {
       return axios.get(url);
@@ -146,9 +82,6 @@ export default {
     }
   },
   computed: {
-    isMainDataLoaded() {
-      return !!this.data;
-    },
     arePlanetsLoaded() {
       return !!this.planets;
     },
@@ -160,26 +93,45 @@ export default {
     },
     areVehiclesLoaded() {
       return !!this.vehicles;
+    },
+    planets() {
+      return this.$store.state.planets;
+    },
+    species() {
+      return this.$store.state.species;
+    },
+    starships() {
+      return this.$store.state.starships;
+    },
+    vehicles() {
+      return this.$store.state.vehicles;
+    },
+    film() {
+      const film = this.$store.getters.getFilmById(this.filmId);
+      if (film && !this.didGetData) {
+        this.didGetData = true;
+        this.fetchFilmData(film);
+      }
+
+      return film || {};
     }
   },
   mounted() {
-    const filmId = parseInt(this.$route.params.filmId);
-    if (Number.isNaN(filmId)) {
+    this.filmId = parseInt(this.$route.params.filmId);
+    if (Number.isNaN(this.filmId)) {
       this.$router.push("/notFound");
     }
-
-    this.fetchFilmData(filmId);
   }
 };
 </script>
 
 <style scoped lang="scss">
-  ul {
-    padding: 0;
-    margin: 0;
-  }
+ul {
+  padding: 0;
+  margin: 0;
+}
 
-  .film-list-item {
-      cursor: pointer;
-  }
+.film-list-item {
+  cursor: pointer;
+}
 </style>
