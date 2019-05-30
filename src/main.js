@@ -25,19 +25,31 @@ const store = new Vuex.Store({
   },
   mutations: {
     setFilms(state, films) {
-      state.films = films;
+      store.replaceState({ ...state, films });
     },
     setPlanets(state, planets) {
-      state.planets = _.uniqBy([...state.planets, ...planets], "url");
+      store.replaceState({
+        ...state,
+        planets: _.uniqBy([...state.planets, ...planets], "url")
+      });
     },
     setSpecies(state, species) {
-      state.species = _.uniqBy([...state.species, ...species], "url");
+      store.replaceState({
+        ...state,
+        species: _.uniqBy([...state.species, ...species], "url")
+      });
     },
     setStarships(state, starships) {
-      state.starships = _.uniqBy([...state.starships, ...starships], "url");
+      store.replaceState({
+        ...state,
+        starships: _.uniqBy([...state.starships, ...starships], "url")
+      });
     },
     setVehicles(state, vehicles) {
-      state.vehicles = _.uniqBy([...state.vehicles, ...vehicles], "url");
+      store.replaceState({
+        ...state,
+        vehicles: _.uniqBy([...state.vehicles, ...vehicles], "url")
+      });
     }
   },
   getters: {
@@ -48,7 +60,8 @@ const store = new Vuex.Store({
     },
     getPlanetById: state => id => {
       return state.planets.find(
-        planet => parseInt(planet.url.substring(29, planet.url.length - 1)) === id
+        planet =>
+          parseInt(planet.url.substring(29, planet.url.length - 1)) === id
       );
     },
     getSpeciesById: state => id => {
@@ -76,27 +89,47 @@ const store = new Vuex.Store({
       commit("setFilms", films);
     },
     async loadPlanets({ commit }, urls) {
-      const planets = await sendCategoryRequests(urls).then(responses => {
-        return responses.map(item => item.data);
-      });
+      const planets = await sendCategoryRequests(urls)
+        .then(responses => {
+          return responses.map(item => item.data);
+        })
+        .catch(() => {
+          router.push("/notFound");
+          return [];
+        });
       commit("setPlanets", planets);
     },
     async loadSpecies({ commit }, urls) {
-      const species = await sendCategoryRequests(urls).then(responses => {
-        return responses.map(item => item.data);
-      });
+      const species = await sendCategoryRequests(urls)
+        .then(responses => {
+          return responses.map(item => item.data);
+        })
+        .catch(() => {
+          router.push("/notFound");
+          return [];
+        });
       commit("setSpecies", species);
     },
     async loadStarships({ commit }, urls) {
-      const starships = await sendCategoryRequests(urls).then(responses => {
-        return responses.map(item => item.data);
-      });
+      const starships = await sendCategoryRequests(urls)
+        .then(responses => {
+          return responses.map(item => item.data);
+        })
+        .catch(() => {
+          router.push("/notFound");
+          return [];
+        });
       commit("setStarships", starships);
     },
     async loadVehicles({ commit }, urls) {
-      const vehicles = await sendCategoryRequests(urls).then(responses => {
-        return responses.map(item => item.data);
-      });
+      const vehicles = await sendCategoryRequests(urls)
+        .then(responses => {
+          return responses.map(item => item.data);
+        })
+        .catch(() => {
+          router.push("/notFound");
+          return [];
+        });
       commit("setVehicles", vehicles);
     }
   }

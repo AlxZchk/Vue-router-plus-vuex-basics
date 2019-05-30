@@ -16,8 +16,29 @@ export default {
 </script>
 
 <style lang="scss">
+$element-background: #1c1e22;
+$default-background: #272b30;
+$title-color: #ffe300;
+$default-color: #c8c8c8;
+
+* {
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+  background-color: $default-background;
+}
+
 #app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  font-family: Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
